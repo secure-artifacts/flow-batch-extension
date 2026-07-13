@@ -1,0 +1,67 @@
+{
+  "manifest_version": 3,
+  "name": "Flow 批量生成与自动下载助手",
+  "version": "1.0.0",
+  "description": "针对 Google Labs Flow 平台的批量视频生成与自动化状态监测、自动下载工具。",
+  "permissions": [
+    "storage",
+    "downloads"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://labs.google/fx/zh/tools/flow",
+        "https://labs.google/fx/zh/tools/flow/project/*",
+        "https://labs.google/fx/zh/tools/flow/collection/*",
+        "https://labs.google/fx/tools/flow",
+        "https://labs.google/fx/tools/flow/project/*",
+        "https://labs.google/fx/tools/flow/collection/*"
+      ],
+      "js": [
+        "injects/flow-proxy.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://labs.google/fx/zh/tools/flow",
+        "https://labs.google/fx/zh/tools/flow/project/*",
+        "https://labs.google/fx/zh/tools/flow/collection/*",
+        "https://labs.google/fx/tools/flow",
+        "https://labs.google/fx/tools/flow/project/*",
+        "https://labs.google/fx/tools/flow/collection/*"
+      ],
+      "js": [
+        "content-isolated.js"
+      ],
+      "run_at": "document_end",
+      "world": "ISOLATED"
+    },
+    {
+      "matches": [
+        "https://labs.google/fx/zh/tools/flow",
+        "https://labs.google/fx/zh/tools/flow/project/*",
+        "https://labs.google/fx/zh/tools/flow/collection/*",
+        "https://labs.google/fx/tools/flow",
+        "https://labs.google/fx/tools/flow/project/*",
+        "https://labs.google/fx/tools/flow/collection/*"
+      ],
+      "js": [
+        "injects/ui.js"
+      ],
+      "css": [
+        "injects/ui.css"
+      ],
+      "run_at": "document_end",
+      "world": "MAIN"
+    }
+  ],
+  "action": {
+    "default_title": "Flow 批量助手"
+  }
+}

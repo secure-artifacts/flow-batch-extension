@@ -1,0 +1,62 @@
+MIT License
+
+Copyright (c) 2026
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+# 依赖协议合规报告
+
+## 项目协议
+本项目采用 MIT 协议。
+
+## 依赖协议合规分析
+
+### 结论：✅ 合规 — 可开源分发
+
+项目协议 `MIT` 与所有 0 个直接依赖协议兼容。分发时须满足以下义务：
+- 保留版权声明和许可声明。
+
+## 依赖协议摘要
+
+- 宽松协议 (MIT/BSD/ISC): 0 个 — ✅ 无特殊限制
+- Apache-2.0: 0 个 — ✅ 需保留 NOTICE 和版权声明
+- 弱 Copyleft (LGPL/MPL): 0 个 — ⚠️ 修改部分须开源
+- 强 Copyleft (GPL/AGPL): 0 个 — ⚠️ 分发时须开源衍生作品
+- 未知协议: 0 个 — ❌ 需手动确认
+
+## 协议兼容性详情
+
+基于项目协议 `MIT` 与各依赖协议的逐项判定结果：
+
+### ✅ 兼容的依赖
+
+| 依赖名称 | 依赖协议 | 兼容性 | 分发义务 |
+|---------|---------|--------|---------|
+
+## 第三方协议声明
+
+无第三方组件依赖。
+
+## 风险提示与建议
+
+1. 项目目前无外部依赖，协议状态完全合规。
+2. 建议定期重新审计依赖协议（可使用本审计工具的 Skill 功能自动检查）。
+3. 如有法律疑问，请咨询专业法律顾问。
