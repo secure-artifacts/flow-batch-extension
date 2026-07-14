@@ -15,6 +15,13 @@
     if (obj && obj.promptBoxStore && obj.onSubmit) {
       window.promptBoxStore = obj.promptBoxStore;
       
+      try {
+        console.log("[FlowProxy] 成功拦截 promptBoxStore! 动作列表:", Object.keys(obj.promptBoxStore.getState().actions || {}));
+        console.log("[FlowProxy] 拦截时 promptBoxStore 的当前状态:", obj.promptBoxStore.getState());
+      } catch (err) {
+        console.error("[FlowProxy] 打印 promptBoxStore 信息失败:", err);
+      }
+      
       // 当不是提示词编辑框模式且拥有 placeholder 时，暴露出全局的生成触发方法
       if (!obj.promptBoxId && obj.placeholder) {
         window.generateVideo = () => {
