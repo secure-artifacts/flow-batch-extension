@@ -120,7 +120,7 @@
                   if (status && status.includes("SUCCESSFUL")) {
                     const mediaName = media?.name;
                     if (mediaName) {
-                      const redirectUrl = `https://labs.google/fx/api/trpc/media.getMediaUrlRedirect?name=${mediaName}`;
+                      const redirectUrl = `https://labs.google/fx/api/trpc/media.getMediaUrlRedirect?name=${mediaName}&mediaUrlType=MEDIA_URL_TYPE_FULL_MEDIA`;
                       if (!successfulMediaMap[mediaName]) {
                         successfulMediaMap[mediaName] = [];
                       }

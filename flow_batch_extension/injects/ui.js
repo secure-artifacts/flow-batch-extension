@@ -1115,10 +1115,24 @@
         }
 
         for (const urlObj of urlList) {
-          console.log(`[FlowUI] 自动下载: URL=${urlObj.url}, Path=${targetDownloadPath}`);
+          console.log(`[FlowUI] 自动下载: 原始 URL=${urlObj.url}, Path=${targetDownloadPath}`);
           
+          let downloadUrl = urlObj.url;
+          try {
+            // 在页面上下文预解析重定向，以携带完整的登录 Cookie
+            const response = await fetch(urlObj.url, { method: "GET" });
+            if (response.ok && response.url) {
+              downloadUrl = response.url;
+              console.log(`[FlowUI] 成功解析重定向 URL: ${downloadUrl}`);
+            } else {
+              console.warn(`[FlowUI] 预解析重定向失败，状态码: ${response.status}，将使用原始 URL 尝试下载`);
+            }
+          } catch (fetchErr) {
+            console.error("[FlowUI] 预解析重定向发生异常:", fetchErr);
+          }
+
           const dlResult = await sendToExtension("download", {
-            url: urlObj.url,
+            url: downloadUrl,
             filename: targetDownloadPath
           });
 
