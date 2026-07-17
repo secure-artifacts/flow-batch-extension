@@ -79,7 +79,7 @@
 
   function setupFetchHook() {
     const originalFetch = window.fetch;
-    window.fetch = async (input, init) => {
+    window.fetch = function(input, init) {
       const url = getUrlString(input);
       
       // 判断是否是提交生成视频接口
@@ -93,9 +93,12 @@
       // 判断是否是轮询查询生成状态的接口
       const isStatusCheckRequest = url.includes("video:batchCheckAsyncVideoGenerationStatus");
       
-      const response = await originalFetch(input, init);
+      if (!isGenerateRequest && !isStatusCheckRequest) {
+        return originalFetch.apply(this, arguments);
+      }
 
-      if (isGenerateRequest || isStatusCheckRequest) {
+      return (async () => {
+        const response = await originalFetch.apply(this, arguments);
         try {
           const responseClone = response.clone();
           const parsedData = await parseFetchResponse(responseClone);
@@ -146,9 +149,8 @@
         } catch (err) {
           console.error("[FlowProxy] 处理拦截响应出错:", err);
         }
-      }
-      
-      return response;
+        return response;
+      })();
     };
   }
 

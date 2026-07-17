@@ -88,7 +88,13 @@
       [`retryCount_${key}`]: state.retryCount
     };
     
-    await sendToExtension("setStorage", { data: dataToSave });
+    const res = await sendToExtension("setStorage", { data: dataToSave });
+    if (res && res.error) {
+      console.error("[FlowUI] 保存状态失败:", res.error);
+      if (res.error.includes("失效") || res.error.includes("invalidated")) {
+        showToast("检测到插件连接失效，请刷新网页以重新连接！", 8000);
+      }
+    }
   }
 
   // 从 Storage 读取配置和状态
@@ -104,6 +110,13 @@
     });
     
     if (saved) {
+      if (saved.error) {
+        console.error("[FlowUI] 加载状态失败:", saved.error);
+        if (saved.error.includes("失效") || saved.error.includes("invalidated")) {
+          showToast("检测到插件连接失效或重启，请刷新网页以重新连接！", 8000);
+        }
+        return;
+      }
       if (saved[`tasks_${key}`]) state.tasks = saved[`tasks_${key}`];
       if (saved.settings) state.settings = { ...state.settings, ...saved.settings };
       if (saved.presets) state.presets = saved.presets;
@@ -1018,35 +1031,69 @@
     
     window.currentProcess = params;
 
-    // 1. 清空页面原有的输入数据
-    window.promptBoxStore.getState().actions.clearPromptBox();
-    await delay(300);
+    // 1. 检查并设置视频模型（如果当前模型不是 veo_3_1_lite_low_priority 则进行切换）
+    const targetModel = "veo_3_1_lite_low_priority";
+    const currentModel = window.promptBoxStore.getState().videoModelFamilyId;
+    if (currentModel !== targetModel) {
+      console.log(`[FlowUI] 检测到模型当前为 ${currentModel}，正在切换为 ${targetModel}...`);
+      window.promptBoxStore.setState({
+        videoModelFamilyId: targetModel
+      });
+      // 切换模型在 React 内部通常会触发异步加载组件或重置，因此给予较长的等待时间确保页面稳定
+      await delay(1500);
+    }
 
-    // 2. 配置视频模型参数与秒数
-    const modeVal = footageType || "VIDEO_FRAMES";
+    // 2. 清空页面原有的输入数据
+    window.promptBoxStore.getState().actions.clearPromptBox();
+    await delay(500);
+
+    // 3. 配置视频基本参数（比例、生成数、时长）
     window.promptBoxStore.setState({
-      mode: modeVal,
       aspectRatio: "PORTRAIT", 
       outputsPerPrompt: count || 1,
-      videoModelFamilyId: "veo_3_1_lite_low_priority", 
       selectedVideoDuration: duration
     });
     await delay(300);
 
-    // 3. 将参考图片注入
+    // 4. 配置视频生成模式（帧模式或素材模式）
+    const modeVal = footageType || "VIDEO_FRAMES";
+    window.promptBoxStore.setState({
+      mode: modeVal
+    });
+    await delay(300);
+
+    // 5. 将参考图片注入
+    console.log(`[FlowUI] 注入参考图片: Key=${image.primaryMediaKey}, Mode=${modeVal}`);
     window.promptBoxStore.getState().actions.addImageIngredient({
       imageId: image.primaryMediaKey,
       preferredIngredientType: modeVal === "VIDEO_FRAMES" ? "FIRST_FRAME" : "REFERENCE",
       source: "PLUS_BUTTON"
     });
-    await delay(300);
+    await delay(500);
 
-    // 4. 拼装拼接后的提示词
+    // 6. 二次强制确认模式，防止 addImageIngredient 内部副作用覆盖了 mode
+    if (window.promptBoxStore.getState().mode !== modeVal) {
+      console.warn(`[FlowUI] 检测到 mode 被意外重设为 ${window.promptBoxStore.getState().mode}，正在二次强制设置为 ${modeVal}...`);
+      window.promptBoxStore.setState({
+        mode: modeVal
+      });
+      await delay(300);
+    }
+
+    // 7. 拼装拼接后的提示词
     const finalPrompt = `${presetBefore}\n${lineText}\n${presetAfter}`.trim();
     window.promptBoxStore.getState().actions.setPrompt(finalPrompt);
     await delay(300);
 
-    // 5. 触发生成事件
+    // 8. 触发生成前的最终校验与强制重设，确保万无一失
+    if (window.promptBoxStore.getState().mode !== modeVal) {
+      window.promptBoxStore.setState({
+        mode: modeVal
+      });
+      await delay(100);
+    }
+
+    // 9. 触发生成事件
     if (typeof window.generateVideo === "function") {
       window.generateVideo();
     } else {
@@ -1126,6 +1173,10 @@
               console.log(`[FlowUI] 成功解析重定向 URL: ${downloadUrl}`);
             } else {
               console.warn(`[FlowUI] 预解析重定向失败，状态码: ${response.status}，将使用原始 URL 尝试下载`);
+            }
+            // 立即取消读取流，防止浏览器继续下载整个视频文件并写入缓存导致损坏
+            if (response.body) {
+              await response.body.cancel().catch(e => console.warn("[FlowUI] 取消流失败:", e));
             }
           } catch (fetchErr) {
             console.error("[FlowUI] 预解析重定向发生异常:", fetchErr);
