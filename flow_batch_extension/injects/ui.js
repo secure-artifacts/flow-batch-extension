@@ -46,7 +46,8 @@
       maxLetterFor4s: 40,  // 4s视频最大字数
       maxLetterFor6s: 60,  // 6s视频最大字数
       defaultCount: 1,     // 默认生成数量
-      footageType: "VIDEO_FRAMES" // 默认素材类型
+      footageType: "VIDEO_FRAMES", // 默认素材类型
+      resolution: "VIDEO_RESOLUTION_720P" // 默认分辨率 (720p)
     },
     presets: [             // 提示词模板预设 (首尾拼接)
       { name: "无模版(直接填入)", content: "\n\n" },
@@ -210,6 +211,14 @@
               <input type="number" class="settings-input" id="cfg-max6s" min="1" value="60">
             </div>
 
+            <div class="settings-group">
+              <label>清晰度 / 分辨率</label>
+              <select class="settings-input" id="cfg-resolution" style="background: rgba(255,255,255,0.05); color: var(--flow-text-primary);">
+                <option value="VIDEO_RESOLUTION_720P">720p (默认推荐)</option>
+                <option value="VIDEO_RESOLUTION_360P">360p (低分辨率)</option>
+              </select>
+            </div>
+
             <div class="settings-group" style="margin-top: 20px; border-top: 1px solid var(--flow-border-glass); padding-top: 15px;">
               <label style="font-weight: 600;">模版自定义预设</label>
               <button class="flow-btn secondary" id="btn-add-preset" style="font-size: 12px; padding: 6px 12px;">新建模板</button>
@@ -357,6 +366,9 @@
     document.getElementById("cfg-random").value = state.settings.intervalRandom;
     document.getElementById("cfg-max4s").value = state.settings.maxLetterFor4s;
     document.getElementById("cfg-max6s").value = state.settings.maxLetterFor6s;
+    if (document.getElementById("cfg-resolution")) {
+      document.getElementById("cfg-resolution").value = state.settings.resolution || "VIDEO_RESOLUTION_720P";
+    }
     
     renderTable();
     renderPresetsList();
@@ -387,6 +399,14 @@
     syncSetting("cfg-random", "intervalRandom");
     syncSetting("cfg-max4s", "maxLetterFor4s");
     syncSetting("cfg-max6s", "maxLetterFor6s");
+
+    const resSelect = document.getElementById("cfg-resolution");
+    if (resSelect) {
+      resSelect.addEventListener("change", (e) => {
+        state.settings.resolution = e.target.value;
+        saveState();
+      });
+    }
 
     document.getElementById("btn-add-preset").addEventListener("click", () => {
       const name = prompt("请输入模板名称:");
@@ -1031,6 +1051,27 @@
     
     window.currentProcess = params;
 
+    // 0. 在切换模型之前优先设置分辨率（720p）
+    const targetResolution = state.settings.resolution || "VIDEO_RESOLUTION_720P";
+    console.log(`[FlowUI] 步骤0: 切换模型前优先设置分辨率为 ${targetResolution}...`);
+    window.promptBoxStore.setState({
+      videoResolution: targetResolution,
+      selectedVideoResolution: targetResolution,
+      resolution: targetResolution
+    });
+    try {
+      const resBtn = document.querySelector(
+        `button[aria-controls*="${targetResolution}"], button[id*="trigger-${targetResolution}"]`
+      );
+      if (resBtn && resBtn.getAttribute("aria-selected") !== "true") {
+        console.log(`[FlowUI] 通过 DOM 点击激活分辨率按钮: ${targetResolution}`);
+        resBtn.click();
+      }
+    } catch (e) {
+      console.warn("[FlowUI] DOM 切换分辨率捕获异常:", e);
+    }
+    await delay(300);
+
     // 1. 检查并设置视频模型（如果当前模型不是 veo_3_1_lite_low_priority 则进行切换）
     const targetModel = "veo_3_1_lite_low_priority";
     const currentModel = window.promptBoxStore.getState().videoModelFamilyId;
@@ -1047,9 +1088,12 @@
     window.promptBoxStore.getState().actions.clearPromptBox();
     await delay(500);
 
-    // 3. 配置视频基本参数（比例、生成数、时长）
+    // 3. 配置视频基本参数（比例、分辨率、生成数、时长）
     window.promptBoxStore.setState({
-      aspectRatio: "PORTRAIT", 
+      aspectRatio: "PORTRAIT",
+      videoResolution: targetResolution,
+      selectedVideoResolution: targetResolution,
+      resolution: targetResolution,
       outputsPerPrompt: count || 1,
       selectedVideoDuration: duration
     });
