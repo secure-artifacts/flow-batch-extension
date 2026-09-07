@@ -1,11 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Flow 批量生成与自动下载助手",
-  "version": "1.1.0",
+  "version": "1.2.4",
   "description": "针对 Google Labs Flow 平台的批量视频生成与自动化状态监测、自动下载工具。",
   "permissions": [
     "storage",
     "downloads"
+  ],
+  "host_permissions": [
+    "https://flow.google.com/*",
+    "https://labs.google/*",
+    "https://*.googleusercontent.com/*",
+    "https://*.googleapis.com/*",
+    "https://*.googlevideo.com/*",
+    "https://flow-content.google/*"
   ],
   "background": {
     "service_worker": "background.js",
@@ -14,51 +22,45 @@
   "content_scripts": [
     {
       "matches": [
-        "https://labs.google/fx/zh/tools/flow",
-        "https://labs.google/fx/zh/tools/flow/project/*",
-        "https://labs.google/fx/zh/tools/flow/collection/*",
-        "https://labs.google/fx/tools/flow",
-        "https://labs.google/fx/tools/flow/project/*",
-        "https://labs.google/fx/tools/flow/collection/*"
+        "*://flow.google.com/*",
+        "*://*.flow.google.com/*",
+        "*://labs.google/*",
+        "*://*.labs.google/*"
       ],
-      "js": [
-        "injects/flow-proxy.js"
+      "css": [
+        "injects/ui.css"
       ],
       "run_at": "document_start",
-      "world": "MAIN"
+      "all_frames": true
     },
     {
       "matches": [
-        "https://labs.google/fx/zh/tools/flow",
-        "https://labs.google/fx/zh/tools/flow/project/*",
-        "https://labs.google/fx/zh/tools/flow/collection/*",
-        "https://labs.google/fx/tools/flow",
-        "https://labs.google/fx/tools/flow/project/*",
-        "https://labs.google/fx/tools/flow/collection/*"
+        "*://flow.google.com/*",
+        "*://*.flow.google.com/*",
+        "*://labs.google/*",
+        "*://*.labs.google/*"
+      ],
+      "js": [
+        "injects/flow-proxy.js",
+        "injects/ui.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "*://flow.google.com/*",
+        "*://*.flow.google.com/*",
+        "*://labs.google/*",
+        "*://*.labs.google/*"
       ],
       "js": [
         "content-isolated.js"
       ],
       "run_at": "document_end",
-      "world": "ISOLATED"
-    },
-    {
-      "matches": [
-        "https://labs.google/fx/zh/tools/flow",
-        "https://labs.google/fx/zh/tools/flow/project/*",
-        "https://labs.google/fx/zh/tools/flow/collection/*",
-        "https://labs.google/fx/tools/flow",
-        "https://labs.google/fx/tools/flow/project/*",
-        "https://labs.google/fx/tools/flow/collection/*"
-      ],
-      "js": [
-        "injects/ui.js"
-      ],
-      "css": [
-        "injects/ui.css"
-      ],
-      "run_at": "document_end",
-      "world": "MAIN"
+      "world": "ISOLATED",
+      "all_frames": true
     }
   ],
   "action": {
